@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+#--------------------------------------------------------------------------
+# This is designed to run on Unix systems only.
+# For use under WindBlows, you would need to convert it to an EXE program.
+#
+# Note: This is a minimal script, and written without implementing classes 
+# or tests. The executable should be chmod-ed to 755, so that it is 
+# executable on the user's system. Also, you may need to call the program 
+# this way:
+#
+# ./twitter_search "query"
+#
+# as having the current directory in your PATH under UNIX is dangerous!
+#
+# Only one search term is accepted. The program ignores additional 
+# command line parameters.
+#
+# Copyright (c) 2012 Maintenance Mode, Author: Steve Downie
+#--------------------------------------------------------------------------
+require 'json'
+require 'open-uri'
+
+# URI::encode to safegard program from malicious user query input
+search = URI::encode("q=#{ARGV[0]}")
+# send system command and capture the result
+response = `curl --verbose --data-urlencode  "#{search}" http://search.twitter.com/search.json?rpp=25`
+js =  JSON.parse response
+puts "Total Results = #{js['results'].size}"
+x = 1 # use for result numbering, starting with 1
+# Access each result
+js['results'].each do |r|
+   puts "<<<<<<<<<<<<<<<<<<<<< Result ##{x} >>>>>>>>>>>>>>>>>>>>"
+   # output key/value pair from each result
+   r.each_pair do |k,v|
+     puts "#{k} => #{v}"
+   end  
+   # output twitter from_user_name
+   puts "Twitter user: #{r['from_user_name']}"
+   # output link to twitter user profile
+   puts "Twitter user profile: " << "<a href=\"https://twitter.com/" << "#{r['from_user']}" << "\">#{r['from_user_name']}</a>"
+   puts "<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+   x = x + 1
+end
